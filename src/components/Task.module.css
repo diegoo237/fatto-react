@@ -1,0 +1,10 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: 1.3rem;
+}
+.movimentar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}

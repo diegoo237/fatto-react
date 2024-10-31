@@ -11,8 +11,10 @@
 .container {
   width: 40%;
   height: 100%;
+  padding: 3rem;
   border-radius: 3rem;
   background-color: #fff;
+  min-width: 39rem;
 
   display: flex;
   flex-direction: column;

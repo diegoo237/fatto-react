@@ -1,10 +1,27 @@
 .container {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 1.3rem;
+
+  font-size: 1.4rem;
+}
+.container button {
+  cursor: pointer;
+  width: 1.8rem;
+  background-color: #fff;
+
+  display: flex;
+  border: none;
+}
+.container input {
+  cursor: pointer;
 }
 .movimentar {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+}
+.movimentar button {
+  width: 1rem;
 }

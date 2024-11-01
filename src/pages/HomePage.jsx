@@ -6,10 +6,10 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 function HomePage() {
-  const [visible, setVisible] = useState(false); // Inicializando como false
-  const [tasks, setTasks] = useState([]); // Estado para armazenar as tarefas
-  const [loading, setLoading] = useState(true); // Estado para controle de loading
-  const [error, setError] = useState(null); // Estado para armazenar erros
+  const [visible, setVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [taskList, setTaskList] = useState("");
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -17,7 +17,7 @@ function HomePage() {
         const response = await axios.get("http://localhost:5000/tasks"); // Use a URL completa
 
         console.log("Resposta da API:", response.data); // Veja a resposta no console
-        setTasks(response.data); // Armazena as tarefas
+        setTaskList(response.data); // Armazena as tarefas
       } catch (error) {
         console.error("Erro ao buscar as tarefas:", error);
         setError("Não foi possível carregar as tarefas."); // Atualiza o estado de erro
@@ -30,7 +30,7 @@ function HomePage() {
   }, []); // Executa apenas uma vez ao montar o componente
 
   const handleClick = () => {
-    setVisible((prev) => !prev); // Alterna a visibilidade do formulário
+    setVisible((prev) => !prev);
   };
 
   if (loading) {
@@ -44,15 +44,14 @@ function HomePage() {
   return (
     <main className={styles.main}>
       <section className={styles.container}>
-        {visible && <CreateTaskForm visible={visible} />}
+        {visible && (
+          <CreateTaskForm setTaskList={setTaskList} visible={visible} />
+        )}
+
         <aside>
-          {Array.isArray(tasks) && tasks.length > 0 ? (
-            tasks.map((task) => (
-              <Task key={task._id} task={task} /> // Renderiza cada tarefa
-            ))
-          ) : (
-            <p>Nenhuma tarefa encontrada.</p> // Mensagem caso não haja tarefas
-          )}
+          {taskList.map((task) => (
+            <Task setTaskList={setTaskList} key={task._id} task={task} /> // Renderiza cada tarefa
+          ))}
         </aside>
         <CreateBtn handleClick={handleClick} />
       </section>

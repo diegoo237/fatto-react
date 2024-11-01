@@ -2,7 +2,7 @@ import styles from "./CreateTaskForm.module.css";
 import axios from "axios";
 import { useState } from "react";
 
-function CreateTaskForm({ visible }) {
+function CreateTaskForm({ visible, setTaskList }) {
   const [codigo, setCodigo] = useState("");
   const [titulo, setTitulo] = useState("");
   const [preco, setPreco] = useState("");
@@ -20,6 +20,8 @@ function CreateTaskForm({ visible }) {
 
     try {
       const response = await axios.post("http://localhost:5000/items", newItem);
+      setTaskList(response.data);
+
       console.log("Item criado:", response.data);
       // Aqui você pode adicionar lógica para lidar com o que acontece após a criação do item
     } catch (error) {

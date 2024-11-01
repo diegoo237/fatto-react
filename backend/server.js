@@ -43,10 +43,10 @@ app.post("/items", async (req, res) => {
 
 // Rota para excluir uma tarefa
 app.delete("/tasks/:id", async (req, res) => {
-  const { id } = req.params;
+  const taskId = req.params.id;
 
   try {
-    const deletedTask = await Task.findByIdAndDelete(id);
+    const deletedTask = await Task.findByIdAndDelete(taskId);
     if (!deletedTask) {
       return res.status(404).json({ message: "Tarefa não encontrada" });
     }

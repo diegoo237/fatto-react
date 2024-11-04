@@ -1,12 +1,36 @@
 .container {
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: space-between;
   font-size: 1.4rem;
+  border-radius: 5px;
+  box-shadow: 1px 1px 9px rgba(0, 0, 0, 0.203);
+  padding: 0.6rem 1rem 0.6rem 1rem;
+}
+.container_m {
+  background-color: red;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.4rem;
+  border-radius: 5px;
+  box-shadow: 1px 1px 9px rgba(0, 0, 0, 0.203);
+  padding: 0.6rem 1rem 0.6rem 1rem;
 }
 .taskContainer {
   display: flex;
-  gap: 1rem;
+
+  gap: 2rem;
+}
+.taskContainer span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 15px;
+}
+.taskContainer span p {
+  font-size: 12px;
+  margin-bottom: -1rem;
 }
 .container button {
   cursor: pointer;

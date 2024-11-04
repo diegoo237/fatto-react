@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const taskSchema = new mongoose.Schema({
   codigo: {
-    type: Number,
+    type: String,
     required: true,
   },
   titulo: {
@@ -16,6 +16,11 @@ const taskSchema = new mongoose.Schema({
   data: {
     type: Date,
     required: true,
+  },
+  ordem: {
+    type: Number,
+    required: true,
+    unique: true, // Assegura que o valor seja único
   },
 });
 

@@ -9,7 +9,7 @@ function HomePage() {
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [taskList, setTaskList] = useState("");
+  const [taskList, setTaskList] = useState([]);
 
   useEffect(() => {
     const fetchTasks = async () => {

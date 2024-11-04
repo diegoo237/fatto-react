@@ -8,19 +8,31 @@ function Task({ task, setTaskList }) {
     <div className={styles.container}>
       <div className={styles.taskContainer}>
         <input type="checkbox" />
-        <p>{task.codigo}</p>
-        <p>{task.titulo}</p>
-        <p>{task.preco}</p>
-        <p>{task.data ? new Date(task.data).toLocaleDateString() : ""}</p>
+        <span>
+          <p>id</p>
+          {task.codigo}
+        </span>
+        <span>
+          <p>Nome</p>
+          {task.titulo}
+        </span>
+        <span>
+          <p>Custo</p>
+          {`${task.preco}$`}
+        </span>
+        <span>
+          <p>Prazo</p>
+          {task.data ? new Date(task.data).toLocaleDateString() : ""}
+        </span>
       </div>
 
       <div className={styles.icons}>
         <span>
-          <EditTask />
+          <EditTask task={task} setTaskList={setTaskList} />
           <TrashTask task={task} setTaskList={setTaskList} />
         </span>
         <span className={styles.movimentar}>
-          <MovimentTask />
+          <MovimentTask task={task} setTaskList={setTaskList} />
         </span>
       </div>
     </div>

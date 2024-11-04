@@ -20,7 +20,7 @@ mongoose
 // Rota para buscar todas as tarefas
 app.get("/tasks", async (req, res) => {
   try {
-    const tasks = await Task.find(); // Garante que busca todas as tarefas no banco de dados
+    const tasks = await Task.find().sort({ ordem: 1 });
     res.status(200).json(tasks); // Retorna as tarefas como JSON
   } catch (error) {
     console.error("Erro ao buscar as tarefas:", error);
@@ -33,11 +33,23 @@ app.post("/items", async (req, res) => {
   const { codigo, titulo, preco, data } = req.body;
 
   try {
-    const novoItem = new Item({ codigo, titulo, preco, data });
-    await novoItem.save();
-    res.status(201).send(novoItem);
+    // Recupera a maior ordem existente
+    const maxOrderTask = await Task.findOne({}, {}, { sort: { ordem: -1 } });
+    const newOrder = maxOrderTask ? maxOrderTask.ordem + 1 : 1; // Se não houver tarefas, começa com 1
+
+    const newTask = new Task({
+      codigo,
+      titulo,
+      preco,
+      data,
+      ordem: newOrder, // Define a nova ordem
+    });
+
+    const savedTask = await newTask.save();
+    res.status(201).json(savedTask);
   } catch (error) {
-    res.status(400).send({ error: "Erro ao criar item" });
+    console.error("Erro ao criar tarefa:", error);
+    res.status(500).send({ error: "Erro ao criar tarefa" });
   }
 });
 
@@ -54,6 +66,92 @@ app.delete("/tasks/:id", async (req, res) => {
   } catch (error) {
     console.error("Erro ao excluir a tarefa:", error);
     res.status(500).json({ message: "Erro ao excluir a tarefa" });
+  }
+});
+
+// rota para editar uma tarefa
+app.put("/items/:id", async (req, res) => {
+  const { id } = req.params;
+  const { titulo, preco, data } = req.body; // Pegando os dados do corpo da requisição
+
+  try {
+    const updatedTask = await Task.findByIdAndUpdate(
+      id,
+      { titulo, preco, data },
+      { new: true } // Para retornar a tarefa atualizada
+    );
+
+    if (!updatedTask) {
+      return res.status(404).json({ message: "Tarefa não encontrada" });
+    }
+
+    res.json(updatedTask);
+  } catch (error) {
+    res.status(500).json({ message: "Erro ao atualizar a tarefa", error });
+  }
+});
+
+// Rota para mover a tarefa para cima
+app.put("/items/:id/move-up", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Primeiro, obtenha a tarefa que está sendo movida
+    const taskToMove = await Task.findById(id);
+    if (!taskToMove) {
+      return res.status(404).json({ message: "Tarefa não encontrada" });
+    }
+
+    // Verifique se a tarefa pode ser movida para cima
+    if (taskToMove.ordem > 1) {
+      // Obtenha a tarefa acima
+      const taskAbove = await Task.findOne({ ordem: taskToMove.ordem - 1 });
+
+      // Se houver uma tarefa acima, atualize a ordem dela
+      if (taskAbove) {
+        taskAbove.ordem += 1; // Aumente a ordem da tarefa acima
+        await taskAbove.save(); // Salve as alterações
+      }
+
+      // Atualize a ordem da tarefa que está sendo movida
+      taskToMove.ordem -= 1; // Mova a tarefa para cima
+      await taskToMove.save(); // Salve as alterações
+    }
+
+    res.json(taskToMove);
+  } catch (error) {
+    console.error("Erro ao mover tarefa para cima:", error);
+    res.status(500).json({ message: "Erro ao mover tarefa", error });
+  }
+});
+
+// Rota para mover a tarefa para baixo
+app.put("/items/:id/move-down", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Primeiro, obtenha a tarefa que está sendo movida
+    const taskToMove = await Task.findById(id);
+    if (!taskToMove) {
+      return res.status(404).json({ message: "Tarefa não encontrada" });
+    }
+
+    // Verifique se a tarefa pode ser movida para baixo
+    const nextTask = await Task.findOne({ ordem: taskToMove.ordem + 1 });
+    if (nextTask) {
+      // Atualize a ordem da tarefa abaixo
+      nextTask.ordem -= 1; // Reduza a ordem da tarefa abaixo
+      await nextTask.save(); // Salve as alterações
+    }
+
+    // Agora, atualize a ordem da tarefa movida
+    taskToMove.ordem += 1; // Mova a tarefa para baixo
+    await taskToMove.save(); // Salve as alterações
+
+    res.json(taskToMove);
+  } catch (error) {
+    console.error("Erro ao mover tarefa para baixo:", error);
+    res.status(500).json({ message: "Erro ao mover tarefa", error });
   }
 });
 

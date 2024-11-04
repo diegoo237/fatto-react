@@ -1,0 +1,24 @@
+.container {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+
+  width: 40rem;
+  background-color: white;
+  box-shadow: 1px 1px 15px rgba(0, 0, 0, 0.224);
+
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+.container span {
+  display: flex;
+  gap: 2rem;
+}
+.container span button {
+  width: auto;
+  background-color: aquamarine;
+  padding: 1rem;
+}

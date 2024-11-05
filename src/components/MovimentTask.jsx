@@ -42,7 +42,6 @@ function MovimentTask({ task, taskList, setTaskList }) {
       console.error("Erro ao mover tarefa para baixo:", error);
     }
   };
-
   return (
     <>
       <button onClick={moveUp}>

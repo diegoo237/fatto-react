@@ -10,7 +10,7 @@ const taskSchema = new mongoose.Schema({
     required: true,
   },
   preco: {
-    type: Number, // Ajuste para Number se for trabalhar com valores numéricos
+    type: Number,
     required: true,
   },
   data: {
@@ -20,7 +20,7 @@ const taskSchema = new mongoose.Schema({
   ordem: {
     type: Number,
     required: true,
-    unique: true, // Assegura que o valor seja único
+    unique: true,
   },
 });
 

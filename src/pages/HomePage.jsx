@@ -14,43 +14,46 @@ function HomePage() {
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/tasks"); // Use a URL completa
+        const response = await axios.get("http://localhost:5000/items");
 
-        console.log("Resposta da API:", response.data); // Veja a resposta no console
-        setTaskList(response.data); // Armazena as tarefas
+        setTaskList(response.data);
       } catch (error) {
         console.error("Erro ao buscar as tarefas:", error);
-        setError("Não foi possível carregar as tarefas."); // Atualiza o estado de erro
+        setError("Não foi possível carregar as tarefas.");
       } finally {
-        setLoading(false); // Finaliza o loading
+        setLoading(false);
       }
     };
 
-    fetchTasks(); // Chama a função para buscar as tarefas
-  }, []); // Executa apenas uma vez ao montar o componente
+    fetchTasks();
+  }, []);
 
   const handleClick = () => {
     setVisible((prev) => !prev);
   };
 
   if (loading) {
-    return <p>Carregando tarefas...</p>; // Exibe uma mensagem de loading
+    return <p>Carregando tarefas...</p>;
   }
 
   if (error) {
-    return <p>{error}</p>; // Exibe mensagem de erro
+    return <p>{error}</p>;
   }
 
   return (
     <main className={styles.main}>
       <section className={styles.container}>
         {visible && (
-          <CreateTaskForm setTaskList={setTaskList} visible={visible} />
+          <CreateTaskForm
+            setTaskList={setTaskList}
+            visible={visible}
+            setVisible={setVisible}
+          />
         )}
 
         <aside>
           {taskList.map((task) => (
-            <Task setTaskList={setTaskList} key={task._id} task={task} /> // Renderiza cada tarefa
+            <Task setTaskList={setTaskList} key={task._id} task={task} />
           ))}
         </aside>
         <CreateBtn handleClick={handleClick} />

@@ -1,35 +1,64 @@
 import styles from "./CreateTaskForm.module.css";
 import axios from "axios";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
-function CreateTaskForm({ visible, setTaskList }) {
+function CreateTaskForm({ visible, setTaskList, setVisible }) {
   const [titulo, setTitulo] = useState("");
   const [preco, setPreco] = useState("");
   const [data, setData] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const componentRef = useRef(null);
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Evita o comportamento padrão de recarregar a página
+    e.preventDefault();
     const codigo = `COD-${Math.floor(Math.random() * 100000)}`;
+    setErrorMessage("");
 
     const newItem = {
       codigo,
       titulo,
       preco: parseFloat(preco),
-      data: new Date(data), // Converte a string para Date
+      data: new Date(data),
     };
 
     try {
       const response = await axios.post("http://localhost:5000/items", newItem);
       setTaskList((prevTasks) => [...prevTasks, response.data]);
-
-      console.log("Item criado:", response.data);
-      // Aqui você pode adicionar lógica para lidar com o que acontece após a criação do item
+      setTitulo("");
+      setPreco("");
+      setData("");
+      setVisible(false);
+      setErrorMessage("");
     } catch (error) {
-      console.error("Erro ao criar item:", error);
+      if (error.response && error.response.data.message) {
+        setErrorMessage(error.response.data.message);
+      } else {
+        setErrorMessage("Erro ao criar item. Tente novamente.");
+      }
     }
   };
+
+  const handleClickOutside = (event) => {
+    if (componentRef.current && !componentRef.current.contains(event.target)) {
+      setVisible(false);
+      setTitulo("");
+      setPreco("");
+      setData("");
+    }
+  };
+
+  useEffect(() => {
+    if (visible) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [visible]);
+
   return (
     <form
+      ref={componentRef}
       className={visible ? styles.form : "invisible"}
       onSubmit={handleSubmit}
     >
@@ -54,7 +83,10 @@ function CreateTaskForm({ visible, setTaskList }) {
         required
       />
       <button type="submit">Adicionar Item</button>
+
+      {errorMessage && <p className={styles.error}>{errorMessage}</p>}
     </form>
   );
 }
+
 export default CreateTaskForm;

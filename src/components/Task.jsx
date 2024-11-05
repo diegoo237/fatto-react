@@ -4,8 +4,11 @@ import MovimentTask from "./MovimentTask";
 import styles from "./Task.module.css";
 
 function Task({ task, setTaskList }) {
+  const containerClass =
+    task.preco > 1000 ? styles.containerM : styles.container;
+
   return (
-    <div className={styles.container}>
+    <div className={containerClass}>
       <div className={styles.taskContainer}>
         <input type="checkbox" />
         <span>

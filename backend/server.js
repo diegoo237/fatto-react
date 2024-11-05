@@ -3,25 +3,22 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 
-// Importa o modelo
-const Item = require("./models/Task");
-const Task = require("./models/Task"); // Certifique-se de que você tenha um modelo Task
+const Task = require("./models/Task");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Conexão com o MongoDB
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("Conectado ao MongoDB"))
   .catch((error) => console.error("Erro ao conectar ao MongoDB:", error));
 
 // Rota para buscar todas as tarefas
-app.get("/tasks", async (req, res) => {
+app.get("/items", async (req, res) => {
   try {
     const tasks = await Task.find().sort({ ordem: 1 });
-    res.status(200).json(tasks); // Retorna as tarefas como JSON
+    res.status(200).json(tasks);
   } catch (error) {
     console.error("Erro ao buscar as tarefas:", error);
     res.status(500).json({ message: "Erro ao buscar as tarefas" });
@@ -33,16 +30,23 @@ app.post("/items", async (req, res) => {
   const { codigo, titulo, preco, data } = req.body;
 
   try {
-    // Recupera a maior ordem existente
+    // Verifica se já existe uma tarefa com o mesmo título
+    const existingTask = await Task.findOne({ titulo });
+    if (existingTask) {
+      return res
+        .status(400)
+        .json({ message: "Título já existe. Escolha outro." });
+    }
+
     const maxOrderTask = await Task.findOne({}, {}, { sort: { ordem: -1 } });
-    const newOrder = maxOrderTask ? maxOrderTask.ordem + 1 : 1; // Se não houver tarefas, começa com 1
+    const newOrder = maxOrderTask ? maxOrderTask.ordem + 1 : 1;
 
     const newTask = new Task({
       codigo,
       titulo,
       preco,
       data,
-      ordem: newOrder, // Define a nova ordem
+      ordem: newOrder,
     });
 
     const savedTask = await newTask.save();
@@ -53,32 +57,23 @@ app.post("/items", async (req, res) => {
   }
 });
 
-// Rota para excluir uma tarefa
-app.delete("/tasks/:id", async (req, res) => {
-  const taskId = req.params.id;
-
-  try {
-    const deletedTask = await Task.findByIdAndDelete(taskId);
-    if (!deletedTask) {
-      return res.status(404).json({ message: "Tarefa não encontrada" });
-    }
-    res.status(200).json({ message: "Tarefa excluída com sucesso" });
-  } catch (error) {
-    console.error("Erro ao excluir a tarefa:", error);
-    res.status(500).json({ message: "Erro ao excluir a tarefa" });
-  }
-});
-
-// rota para editar uma tarefa
+// Rota para editar uma tarefa
 app.put("/items/:id", async (req, res) => {
   const { id } = req.params;
-  const { titulo, preco, data } = req.body; // Pegando os dados do corpo da requisição
+  const { titulo, preco, data } = req.body;
 
   try {
+    const existingTask = await Task.findOne({ titulo });
+    if (existingTask && existingTask._id.toString() !== id) {
+      return res
+        .status(400)
+        .json({ message: "Título já existe. Escolha outro." });
+    }
+
     const updatedTask = await Task.findByIdAndUpdate(
       id,
       { titulo, preco, data },
-      { new: true } // Para retornar a tarefa atualizada
+      { new: true }
     );
 
     if (!updatedTask) {
@@ -91,37 +86,51 @@ app.put("/items/:id", async (req, res) => {
   }
 });
 
+// Função para atualizar a ordem das tarefas
+const updateTaskOrder = async (taskId, newOrder) => {
+  const task = await Task.findById(taskId);
+  if (!task) throw new Error("Tarefa não encontrada");
+
+  const currentOrder = task.ordem;
+
+  if (currentOrder === newOrder) return;
+
+  if (newOrder < currentOrder) {
+    await Task.updateMany(
+      { ordem: { $gte: newOrder, $lt: currentOrder } },
+      { $inc: { ordem: 1 } }
+    );
+  } else {
+    await Task.updateMany(
+      { ordem: { $gt: currentOrder, $lte: newOrder } },
+      { $inc: { ordem: -1 } }
+    );
+  }
+
+  await Task.findByIdAndUpdate(taskId, { ordem: newOrder });
+};
+
 // Rota para mover a tarefa para cima
 app.put("/items/:id/move-up", async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Primeiro, obtenha a tarefa que está sendo movida
-    const taskToMove = await Task.findById(id);
-    if (!taskToMove) {
+    const task = await Task.findById(id);
+    if (!task)
       return res.status(404).json({ message: "Tarefa não encontrada" });
+
+    if (task.ordem === 1) {
+      return res
+        .status(400)
+        .json({ message: "A tarefa já está na primeira posição" });
     }
 
-    // Verifique se a tarefa pode ser movida para cima
-    if (taskToMove.ordem > 1) {
-      // Obtenha a tarefa acima
-      const taskAbove = await Task.findOne({ ordem: taskToMove.ordem - 1 });
+    await updateTaskOrder(task._id, task.ordem - 1);
 
-      // Se houver uma tarefa acima, atualize a ordem dela
-      if (taskAbove) {
-        taskAbove.ordem += 1; // Aumente a ordem da tarefa acima
-        await taskAbove.save(); // Salve as alterações
-      }
-
-      // Atualize a ordem da tarefa que está sendo movida
-      taskToMove.ordem -= 1; // Mova a tarefa para cima
-      await taskToMove.save(); // Salve as alterações
-    }
-
-    res.json(taskToMove);
+    res.status(200).json({ message: "Tarefa movida para cima" });
   } catch (error) {
     console.error("Erro ao mover tarefa para cima:", error);
-    res.status(500).json({ message: "Erro ao mover tarefa", error });
+    res.status(500).json({ message: "Erro ao mover tarefa para cima" });
   }
 });
 
@@ -130,28 +139,48 @@ app.put("/items/:id/move-down", async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Primeiro, obtenha a tarefa que está sendo movida
-    const taskToMove = await Task.findById(id);
-    if (!taskToMove) {
+    const task = await Task.findById(id);
+    if (!task)
       return res.status(404).json({ message: "Tarefa não encontrada" });
+
+    const belowTask = await Task.findOne({ ordem: task.ordem + 1 });
+    if (!belowTask) {
+      return res
+        .status(400)
+        .json({ message: "A tarefa já está na última posição" });
     }
 
-    // Verifique se a tarefa pode ser movida para baixo
-    const nextTask = await Task.findOne({ ordem: taskToMove.ordem + 1 });
-    if (nextTask) {
-      // Atualize a ordem da tarefa abaixo
-      nextTask.ordem -= 1; // Reduza a ordem da tarefa abaixo
-      await nextTask.save(); // Salve as alterações
-    }
+    await updateTaskOrder(task._id, task.ordem + 1);
 
-    // Agora, atualize a ordem da tarefa movida
-    taskToMove.ordem += 1; // Mova a tarefa para baixo
-    await taskToMove.save(); // Salve as alterações
-
-    res.json(taskToMove);
+    res.status(200).json({ message: "Tarefa movida para baixo" });
   } catch (error) {
     console.error("Erro ao mover tarefa para baixo:", error);
-    res.status(500).json({ message: "Erro ao mover tarefa", error });
+    res.status(500).json({ message: "Erro ao mover tarefa para baixo" });
+  }
+});
+
+// Rota para excluir uma tarefa
+app.delete("/items/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const task = await Task.findById(id);
+    if (!task)
+      return res.status(404).json({ message: "Tarefa não encontrada" });
+
+    await Task.findByIdAndDelete(id);
+
+    const updatedTasks = await Task.find({ ordem: { $gt: task.ordem } });
+
+    for (const t of updatedTasks) {
+      t.ordem -= 1;
+      await t.save();
+    }
+
+    res.status(200).json({ message: "Tarefa excluída com sucesso" });
+  } catch (error) {
+    console.error("Erro ao excluir tarefa:", error);
+    res.status(500).json({ message: "Erro ao excluir tarefa" });
   }
 });
 

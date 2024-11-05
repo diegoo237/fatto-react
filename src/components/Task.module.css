@@ -7,13 +7,13 @@
   box-shadow: 1px 1px 9px rgba(0, 0, 0, 0.203);
   padding: 0.6rem 1rem 0.6rem 1rem;
 }
-.container_m {
-  background-color: red;
+.containerM {
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-size: 1.4rem;
   border-radius: 5px;
+  background-color: #ffec99;
   box-shadow: 1px 1px 9px rgba(0, 0, 0, 0.203);
   padding: 0.6rem 1rem 0.6rem 1rem;
 }
@@ -32,6 +32,7 @@
   font-size: 12px;
   margin-bottom: -1rem;
 }
+
 .container button {
   cursor: pointer;
   width: 1.8rem;
@@ -44,6 +45,22 @@
   cursor: pointer;
 }
 .container span {
+  display: flex;
+  gap: 1rem;
+}
+
+.containerM button {
+  cursor: pointer;
+  width: 1.8rem;
+  background-color: #ffec99;
+
+  display: flex;
+  border: none;
+}
+.containerM input {
+  cursor: pointer;
+}
+.containerM span {
   display: flex;
   gap: 1rem;
 }

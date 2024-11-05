@@ -5,7 +5,7 @@ import styles from "./Task.module.css";
 
 function Task({ task, setTaskList }) {
   const containerClass =
-    task.preco > 1000 ? styles.containerM : styles.container;
+    task.preco >= 1000 ? styles.containerM : styles.container;
 
   return (
     <div className={containerClass}>
